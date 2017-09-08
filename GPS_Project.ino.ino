@@ -17,12 +17,20 @@ SoftwareSerial ssGPS(ARDUINO_GPS_TX, ARDUINO_GPS_RX);
 
 int lati = 34.983322;
 int lon = -117.874969;
+int NPin = 12;
+int SPin = 11;
+int WPin = 10;
+int EPin = 9;
 float Pi = 3.14159;
 
 void setup(void) 
 {
   Serial.begin(9600);
   Serial.println("Magnetometer Test"); Serial.println("");
+  pinMode(NPin, OUTPUT);
+  pinMode(SPin, OUTPUT);
+  pinMode(WPin, OUTPUT);
+  pinMode(EPin, OUTPUT);
   gpsPort.begin(GPS_BAUD);
   /* Initialise the sensor */
   if(!mag.begin())
@@ -49,12 +57,20 @@ void loop(void)
   {
     heading = 360 + heading;
   }
-  smartDelay(500);
+  smartDelay(100);
   Serial.print("Compass Heading: ");
   Serial.println(heading);
-  int destHeading = getHeading(lati, lon);
-  Serial.println(destHeading - heading);
   
+  int destHeading = getHeading(lati, lon);
+  if(destHeading-heading<0){
+    destHeading = destHeading - heading + 360;
+  }
+  else{
+    destHeading = destHeading - heading;
+  }
+  Serial.println(destHeading);
+  delay(10);
+  setPin(destHeading);
 }
 
 void printGPSInfo()
@@ -92,5 +108,33 @@ int getHeading(int lati, int lon)
     val = val+360;
   }
   return val;
+}
+
+void setPin(int heading)
+{
+  if ((0<=heading&&heading<67.5)||(292.5<=heading&&heading<359)){
+    digitalWrite(NPin, HIGH);
+  }
+  else{
+    digitalWrite(NPin, LOW);
+  }
+  if (22.5<=heading&&heading<157.5){
+    digitalWrite(EPin, HIGH);
+  }
+  else{
+    digitalWrite(EPin, LOW);
+  }
+  if (112.5<=heading&&heading<247.5){
+    digitalWrite(SPin, HIGH);
+  }
+  else{
+    digitalWrite(SPin, LOW);
+  }
+  if (202.5<=heading&&heading<337.5){
+    digitalWrite(WPin, HIGH);
+  }
+  else{
+    digitalWrite(WPin, LOW);
+  }
 }
 
